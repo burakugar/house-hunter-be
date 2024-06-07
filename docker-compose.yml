@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  app:
+    container_name: house-hunter
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/house_hunter
+      SPRING_DATASOURCE_USERNAME: {{POSTGRES_USER}}
+      SPRING_DATASOURCE_PASSWORD: {{POSTGRES_PASSWORD}}
+      SPRING_MAIL_USERNAME: {{MAIL_USERNAME}}
+      SPRING_MAIL_PASSWORD: {{MAIL_PASSWORD}}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      DOCKER_ENV: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - house-hunter-m2-cache:/root/.m2
+      - ./documents:/usr/local/lib/documents
+      - ./images:/usr/local/lib/images
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:latest
+    container_name: db
+    volumes:
+      - house-hunter-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: {{POSTGRES_USER}}
+      POSTGRES_PASSWORD: {{POSTGRES_PASSWORD}}
+      POSTGRES_DB: house_hunter{{POSTGRES_DB}}
+
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  house-hunter-m2-cache:
+  house-hunter-db-data:
